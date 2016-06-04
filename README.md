@@ -2,5 +2,5 @@
 Initial vals for IRT model using noharm.
 
 #Contributors 
-Francisco Ospina
-Sergio Paés
+- Francisco Ospina
+- Sergio Paéz
