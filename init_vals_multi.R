@@ -5,7 +5,6 @@
 # init_uni: (matrix) it's initial values for coefs. 
 # Pval: (matrix) it's intial value of correlation matrixmatrix
 # dim: (integer) number of dimensions
-# eps_c: (numeric) epsilon to move c
 # eps_cut_fpat: (numeric) If some value of a for any item in any dimensiónis < eps_cut_fpat, re calculate Fpatt and remove a of that item in that dimension 
 # Verbose: (boolean) print message in start and finish process
 # cut_fpat: (boolean) reload Fpatt
@@ -14,7 +13,7 @@
 # coefs: (matrix) initial values to multidimensional IRT model
 # corr: (matrix) correlations between constructs 
 
-calculate_init_vals = function(dat, init_uni, Pval, dim, eps_c = 0, eps_cut_fpat = NULL, verbose = FALSE, cut_fpat = FALSE){
+calculate_init_vals = function(dat, init_uni, Pval, dim, eps_cut_fpat = NULL, verbose = FALSE, cut_fpat = FALSE){
   if(verbose) print("Start process to calculate init vals.")
   #Create Fpatt and Fval
   Fpatt = matrix(1, nrow = ncol(data), ncol = dim)
@@ -28,11 +27,15 @@ calculate_init_vals = function(dat, init_uni, Pval, dim, eps_c = 0, eps_cut_fpat
   diag(Ppatt) = 0
   
   #Set lower and upper bounds
-  lower = init_uni[,ncol(init_uni)] - eps_c
+  lower = init_uni[,ncol(init_uni)]
   upper = rep(1,nrow(init_uni))
   
+  if(TRUE %in% (lower < 0)){
+    stop("The value of c should be >= 0")
+  }
+  
   #Get noharm fit
-  fit = noharm.sirt( dat = dat, Ppatt = Ppatt, Fpatt = Fpatt, Fval = Fval, Pval = Pval, lower = lower, upper = upper)
+  fit = sirt::noharm.sirt( dat = dat, Ppatt = Ppatt, Fpatt = Fpatt, Fval = Fval, Pval = Pval, lower = lower, upper = upper)
   
   #if cut_pat == TRUE AND values < eps_cut_pat reload Fpatt and calcule fit 
   if(cut_fpat){
@@ -45,7 +48,7 @@ calculate_init_vals = function(dat, init_uni, Pval, dim, eps_c = 0, eps_cut_fpat
     
     #If fit fail for "reorder" return previous fit
     fit = tryCatch({
-      fit = noharm.sirt( dat = dat, Ppatt = Ppatt, Fpatt = Fpatt, Fval = Fval, Pval = Pval, lower = lower, upper = upper)
+      fit = sirt::noharm.sirt( dat = dat, Ppatt = Ppatt, Fpatt = Fpatt, Fval = Fval, Pval = Pval, lower = lower, upper = upper)
     }, error = function(e) {
       fit
     })
