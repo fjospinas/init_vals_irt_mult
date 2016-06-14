@@ -124,14 +124,21 @@ calculate_init_vals = function(dat, init_uni, dim_clust, corr, verbose = FALSE, 
   
   Fval = init_uni[,1:dim]
   
-  
-  
   #Created Ppatt
   Ppatt = matrix(1, ncol = dim, nrow = dim)
   diag(Ppatt) = 0
-
+  
   #Get noharm fit
-  fit = sirt::noharm.sirt( dat = dat, Ppatt = Ppatt, Fpatt = Fpatt, Fval = Fval, Pval = corr)
+  fit = result = tryCatch({
+    sirt::noharm.sirt( dat = dat, Ppatt = Ppatt, Fpatt = Fpatt, Fval = Fval, Pval = corr)
+  }, error = function(e) {
+    Ppatt = matrix(0, ncol = dim, nrow = dim)
+    Pval = matrix(0, ncol = dim, nrow = dim)
+    diag(Pval) = 1
+    sirt::noharm.sirt( dat = dat, Ppatt = Ppatt, Fpatt = Fpatt, Fval = Fval, Pval = Pval)
+  })
+    
+    
   
   #build list for return
   if(!probit){
